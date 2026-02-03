@@ -1,0 +1,35 @@
+name: Atualizador de Stream Band
+
+on:
+  schedule:
+    - cron: '0 */2 * * *' # Roda sozinho a cada 2 horas
+  workflow_dispatch:      # ESTA LINHA CRIA O BOTÃO PARA RODAR MANUALMENTE
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar Playwright e Dependências
+        run: |
+          pip install playwright
+          playwright install chromium
+          playwright install-deps
+
+      - name: Executar Captura
+        run: python capturar.py
+
+      - name: Commitar e dar Push
+        run: |
+          git config --global user.name "Band-Bot"
+          git config --global user.email "bot@github.com"
+          git add band.m3u debug.png
+          git commit -m "Atualização automática: $(date)" || echo "Sem mudanças"
+          git push
